@@ -1,0 +1,20 @@
+{
+  "name": "svg-bulk-outliner",
+  "version": "1.0.0",
+  "description": "SVG bulk text-to-outlines converter via Inkscape",
+  "main": "src/outline.js",
+  "bin": "./bin/svg-bulk-outline",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:kynatro/svg-bulk-outliner.git"
+  },
+  "author": "Dave Shepard <kynatro@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "glob": "^7.1.6",
+    "yargs": "^15.4.1"
+  }
+}
