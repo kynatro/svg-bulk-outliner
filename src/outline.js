@@ -3,7 +3,7 @@
 const glob = require('glob');
 const path = require('path');
 const os = require('os');
-const { execSync } = require('child_process');
+const { spawnSync } = require('child_process');
 const { argv } = require('yargs');
 const { isInkscapeInstalled } = require('./helpers');
 const { DEFAULT_CWD, DEFAULT_PATTERN, FILE_EXTENSION, INKSCAPE_CMD } = require('./constants.js');
@@ -55,21 +55,25 @@ function outline(options = {}) {
         params.push('--export-overwrite');
       }
 
-      const cmd = `${INKSCAPE_CMD} ${params.join(' ')} ${input}`;
       const msg = saveCopy ? `${file} → ${path.join(dirname, path.basename(output))}` : `${file}`;
 
       process.stdout.write(msg);
 
       try {
-        execSync(cmd);
-        process.stdout.write(' ✅\n');
+        const response = spawnSync(INKSCAPE_CMD, [...params, input]);
+
+        if (`${response.stderr}`) {
+          throw `${response.stderr}`
+        } else {
+          process.stdout.write(' ✅\n');
+        }
       } catch(err) {
         process.stdout.cursorTo(0);
         process.stdout.write(`\x1b[31m${msg} ❌\x1b[0m\n`);
 
         errors.push({
           file,
-          err
+          err: err.trim()
         });
       }
     });
@@ -79,7 +83,7 @@ function outline(options = {}) {
     if (errors.length) {
       console.log('\n\x1b[31m\x1b[1mSome errors occurred during processing:\x1b[0m');
       errors.forEach(error => {
-        console.log(`File: ${error.file}`);
+        console.log(`\n\x1b[31mFile: ${error.file}\x1b[0m`);
         console.log(error.err);
       });
     }
