@@ -1,9 +1,11 @@
 {
   "name": "svg-bulk-outliner",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SVG bulk text-to-outlines converter via Inkscape",
   "main": "src/outline.js",
-  "bin": "./bin/svg-bulk-outline",
+  "bin": {
+    "svg-bulk-outline": "./bin/svg-bulk-outline"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
