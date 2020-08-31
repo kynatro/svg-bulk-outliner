@@ -33,7 +33,7 @@ function outline(options = {}) {
   const {
     cwd = DEFAULT_CWD,
     filePrefix = '',
-    fileSuffix = '-copy',
+    fileSuffix = '',
     pattern = DEFAULT_PATTERN,
     saveCopy = false
   } = options;
@@ -46,7 +46,8 @@ function outline(options = {}) {
     files.forEach(file => {
       const input = path.join(resolvedCwd, file);
       const dirname = path.dirname(file);
-      const output = path.join(resolvedCwd, `${filePrefix}${path.basename(file, FILE_EXTENSION)}${fileSuffix}${FILE_EXTENSION}`)
+      const calculatedFileSuffix = !filePrefix && !fileSuffix ? '-copy' : fileSuffix;
+      const output = path.join(resolvedCwd, `${filePrefix}${path.basename(file, FILE_EXTENSION)}${calculatedFileSuffix}${FILE_EXTENSION}`)
       const params = ['--export-text-to-path'];
 
       if (saveCopy) {
@@ -73,7 +74,7 @@ function outline(options = {}) {
 
         errors.push({
           file,
-          err: err.trim()
+          err: `${err}`.trim()
         });
       }
     });
