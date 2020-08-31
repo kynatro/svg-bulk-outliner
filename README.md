@@ -39,6 +39,13 @@ Specify the working directory to recurse through. By default, `svg-bulk-outline`
 svg-bulk-outline --cwd="~/Desktop"
 ```
 
+### `--dry-run`
+Don't actually modify the files, but show an output of what the results should look like on the set. Will not actually run `inkscape` against the files, but its useful to check that all the files you want processed are renamed properly and included in your run.
+
+```sh
+svg-bulk-outline --dry-run
+```
+
 ### `--file-prefix`
 Specify a file name prefix for output files. Will rename input files unless `--save-copy` is also specified.
 

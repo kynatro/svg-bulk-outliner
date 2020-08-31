@@ -24,6 +24,7 @@ const model ={
  *
  * @param {Object} options
  * 	 @param {String} cwd Optional working directory to process through. Defaults to DEFAULT_CWD
+ *   @param {Boolean} dryRun Optionally do a dry run to verify input and output set
  *   @param {String} filePrefix Optional prefix to add to the output file
  *   @param {String} fileSuffix Optional suffix to add to the output file. Defaults to "-copy"
  * 	 @param {String} pattern Optional pattern to glob. Defaults to DEFAULT_PATTERN
@@ -32,6 +33,7 @@ const model ={
 function outline(options = {}) {
   const {
     cwd = DEFAULT_CWD,
+    dryRun = false,
     filePrefix = '',
     fileSuffix = '',
     pattern = DEFAULT_PATTERN,
@@ -40,7 +42,11 @@ function outline(options = {}) {
   let resolvedCwd = path.resolve(cwd.replace(/^~/, os.homedir()))
   let errors = [];
 
-  console.log(`\x1b[34mOutlining text in files in ${cwd}...\n\x1b[0m`);
+  if (dryRun) {
+    console.log(`\x1b[33m🔬 DRY RUN! FILES WILL NOT BE CONVERTED 🔬\n\x1b[0m`)
+  } else {
+    console.log(`\x1b[34mOutlining text in files in ${cwd}...\n\x1b[0m`);
+  }
 
   glob(pattern, { cwd: resolvedCwd }, (err, files) => {
     files.forEach(file => {
@@ -60,29 +66,37 @@ function outline(options = {}) {
 
       process.stdout.write(msg);
 
-      try {
-        const response = spawnSync(INKSCAPE_CMD, [...params, input]);
+      if (dryRun) {
+        process.stdout.write(' 🧪\n');
+      } else {
+        try {
+          const response = spawnSync(INKSCAPE_CMD, [...params, input]);
 
-        if (`${response.stderr}`) {
-          throw `${response.stderr}`
-        } else {
-          process.stdout.write(' ✅\n');
+          if (`${response.stderr}`) {
+            throw `${response.stderr}`
+          } else {
+            process.stdout.write(' ✅\n');
+          }
+        } catch(err) {
+          process.stdout.cursorTo(0);
+          process.stdout.write(`\x1b[31m${msg} ❌\x1b[0m\n`);
+
+          errors.push({
+            file,
+            err: `${err}`.trim()
+          });
         }
-      } catch(err) {
-        process.stdout.cursorTo(0);
-        process.stdout.write(`\x1b[31m${msg} ❌\x1b[0m\n`);
-
-        errors.push({
-          file,
-          err: `${err}`.trim()
-        });
       }
     });
 
-    console.log('\n\x1b[32m\x1b[1mText outlining complete!\x1b[0m');
+    if (dryRun) {
+      console.log(`\n\x1b[32m\x1b[1mText outlining dry-run complete! ${files.length} files would have been processed.\x1b[0m`)
+    } else {
+      console.log(`\n\x1b[32m\x1b[1mText outlining complete! ${files.length - errors.length} files processed successfully.\x1b[0m`);
+    }
 
     if (errors.length) {
-      console.log('\n\x1b[31m\x1b[1mSome errors occurred during processing:\x1b[0m');
+      console.log(`\n\x1b[31m\x1b[1m${errors.length} files could not be processed:\x1b[0m`);
       errors.forEach(error => {
         console.log(`\n\x1b[31mFile: ${error.file}\x1b[0m`);
         console.log(error.err);
@@ -96,6 +110,7 @@ if (require.main === module) {
   if (isInkscapeInstalled()) {
     outline({
       cwd: argv.cwd,
+      dryRun: argv.dryRun,
       filePrefix: argv.filePrefix,
       fileSuffix: argv.fileSuffix,
       pattern: argv.pattern,
